@@ -1,0 +1,16 @@
+{
+  "recommended": {
+    "label": "Recommended",
+    "command": "bash <(curl -s https://raw.githubusercontent.com/AirlinkLabs/panel/refs/heads/main/installer.sh)",
+    "requires": ["Linux", "Node.js", "Git"],
+    "verification": [
+      "Open the panel URL in a browser.",
+      "Confirm the panel reports healthy status.",
+      "Create or register a daemon node from the Nodes page."
+    ]
+  },
+  "components": {
+    "panel": "Web control plane and API.",
+    "daemon": "Host-side service that runs game servers and executes node tasks."
+  }
+}
