@@ -7,7 +7,7 @@
     "tw": "npx @tailwindcss/cli -i src/input.css -o dist/public/css/styles.css --minify",
     "tw:watch": "npx @tailwindcss/cli -i src/input.css -o dist/public/css/styles.css --watch",
     "dev": "tsx src/scripts/dev.ts",
-    "cache": "tsx src/scripts/cache-github.ts"
+    "cache": "tsx src/scripts/cache-github-cached.ts"
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.3.1",
