@@ -1,0 +1,29 @@
+/* Shared accessibility baseline. Keep the AirLink visual language, improve the interaction contract. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-text-1);
+  outline-offset: 3px;
+}
+
+:where(button, a, input, select, textarea) {
+  touch-action: manipulation;
+}
+
+@media (pointer: coarse) {
+  :where(button, a[role="button"], .mob-item, .nav-strip-item) {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+html {
+  scrollbar-width: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
