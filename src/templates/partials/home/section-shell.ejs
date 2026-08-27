@@ -1,0 +1,8 @@
+<section id="<%= id %>" class="spa-section" aria-labelledby="<%= headingId %>">
+  <div class="spa-section-inner">
+    <% if (kicker) { %><p class="section-kicker"><%= kicker %></p><% } %>
+    <h2 id="<%= headingId %>"><%= title %></h2>
+    <% if (description) { %><p class="section-description"><%= description %></p><% } %>
+    <%- body %>
+  </div>
+</section>
