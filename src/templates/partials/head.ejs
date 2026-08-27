@@ -13,12 +13,10 @@
     var _pageTitle = pageTitle ? pageTitle + ' — ' + site.title : site.title;
     var _pageDesc  = pageDescription || site.description;
     var _ogImage   = _siteUrl + '/public/assets/icon.png';
-    // canonical: siteUrl + path derived from rootPrefix depth
     var _depth     = (rootPrefix.match(/\.\.\//g) || []).length;
     var _canonical = _siteUrl + (rootPrefix === '' ? '/' : ('/' + Array(_depth).fill('').join('')));
   %>
 
-  <!-- Open Graph — used by Discord, GitHub, and most link previewers -->
   <meta property="og:type"        content="website">
   <meta property="og:site_name"   content="<%= site.title %>">
   <meta property="og:title"       content="<%= _pageTitle %>">
@@ -30,8 +28,8 @@
   <link href="https://api.fontshare.com/v2/css?f[]=general-sans@300,400,500,600,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<%= rootPrefix %>public/css/styles.css">
   <link rel="preload" as="image" href="<%= rootPrefix %>public/assets/icon.png">
+  <script src="<%= rootPrefix %>public/js/activity-view.js" defer></script>
 
-  <!-- Prevent theme flash — must run before first paint -->
   <script>
     (function () {
       var t = 'dark';
@@ -62,7 +60,6 @@
 <div class="uc-bar"><%= underConstruction.badge %>: <%= underConstruction.message %></div>
 <% } %>
 
-<!-- Loading screen -->
 <div id="loading-screen">
   <div id="loading-inner">
     <img src="<%= rootPrefix %>public/assets/icon.png" alt="" width="32" height="32"
@@ -76,33 +73,21 @@
 
 <script>
 (function () {
-  var msgs = [
-    'Loading assets',
-    'Fetching styles',
-    'Preparing page',
-    'Almost there',
-  ];
+  var msgs = ['Loading assets', 'Fetching styles', 'Preparing page', 'Almost there'];
   var el = document.getElementById('loading-msg');
-  var i  = 0;
+  var i = 0;
   if (!el) return;
   el.textContent = msgs[0];
   var t = setInterval(function () {
     i = (i + 1) % msgs.length;
     el.style.opacity = '0';
-    setTimeout(function () {
-      el.textContent   = msgs[i];
-      el.style.opacity = '1';
-    }, 160);
+    setTimeout(function () { el.textContent = msgs[i]; el.style.opacity = '1'; }, 160);
   }, 900);
-  // Clear on either load or DOMContentLoaded to avoid getting stuck
   function stop() { clearInterval(t); }
-  if (document.readyState === 'complete') {
-    stop();
-  } else {
+  if (document.readyState === 'complete') stop();
+  else {
     window.addEventListener('load', stop, { once: true });
-    window.addEventListener('DOMContentLoaded', function () {
-      setTimeout(stop, 3000);
-    }, { once: true });
+    window.addEventListener('DOMContentLoaded', function () { setTimeout(stop, 3000); }, { once: true });
   }
 })();
 </script>
