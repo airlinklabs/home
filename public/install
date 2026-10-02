@@ -7,12 +7,16 @@
 # `bun build --compile` - no git, no bun, no source checkout is needed.
 #
 # Usage:
-#   bash <(curl -fsSL <pages>/installer.sh)        # fresh machine
-#   curl -fsSL <pages>/installer.sh | bash         # fresh machine (piped)
-#   curl -fsSL <pages>/installer.sh | bash -s -- --install-both
+#   bash <(curl -fsSL https://airlinklabs.xyz/install)  # fresh machine
+#   curl -fsSL https://airlinklabs.xyz/install | bash   # fresh machine (piped)
+#   curl -fsSL https://airlinklabs.xyz/install | bash -s -- --install-both
+#   curl -fsSL https://airlinklabs.xyz/install | bash -s -- --install-both --yes
+#                                     # scripted: plain logs, no TTY, exit code = result
 #   ./installer.sh --help        # usage; no TTY, no root needed
-#   ./installer.sh --no-color    # plain logs (pipes / CI); actions still need root
+#   ./installer.sh --no-color    # plain logs explicitly (pipes / CI); actions still need root
 #   ./installer.sh --demo        # UI preview; no root, no system changes
+#   no TTY at all -> the binary falls back to plain logs on its own; scripts
+#   never have to pass --no-color (uninstalls still need --yes).
 #
 # Env:
 #   AIRLINK_INSTALLER_DL    download base URL (default: the latest-build release)
@@ -37,9 +41,9 @@ for a in "$@"; do
 done
 
 # --- 1. platform -> asset name ----------------------------------------------
-# linux-x64 / linux-arm64, plus a -musl variant on musl systems (Alpine, ...).
+# linux-x64 / linux-arm64 on glibc; musl (Alpine) is refused above.
 detect_platform() {
-    [ "$(uname -s)" = "Linux" ] || die "unsupported OS: $(uname -s) - this installer targets Linux (x64/arm64, glibc or musl)"
+    [ "$(uname -s)" = "Linux" ] || die "unsupported OS: $(uname -s) - this installer targets Linux (x64/arm64, glibc)"
     case "$(uname -m)" in
         x86_64|amd64)  arch=x64 ;;
         aarch64|arm64) arch=arm64 ;;
@@ -55,7 +59,8 @@ detect_platform() {
 # The TUI needs a terminal; --help and plain logs never do, and must work in
 # pipes and CI. When this script is read from stdin (curl | bash), fd0 stays on
 # the pipe - the TUI gets /dev/tty instead, so bash can finish reading the
-# script from the pipe.
+# script from the pipe. With no TTY anywhere the binary is still run: it falls
+# back to plain logs itself (scripts never have to pass --no-color).
 tty_in=""
 if [ "$want_help" -eq 0 ] && [ "$plain" -eq 0 ]; then
     if [ -t 0 ] && [ -t 1 ]; then
@@ -63,7 +68,7 @@ if [ "$want_help" -eq 0 ] && [ "$plain" -eq 0 ]; then
     elif { : < /dev/tty; } 2>/dev/null && [ -t 1 ]; then
         tty_in="</dev/tty"
     else
-        die "interactive terminal required (stdin/stdout are not a TTY) - or pass --no-color"
+        warn "no TTY - falling back to plain logs"
     fi
 elif [ "$plain" -eq 1 ]; then
     warn "plain mode (--no-color): logs go straight to stdout"
@@ -85,8 +90,14 @@ SUDO=()
 if [ "$need_root" -eq 1 ] && [ "$(id -u)" -ne 0 ]; then
     command -v sudo >/dev/null 2>&1 \
         || die "root or sudo is required to install - run as root, or use --help / --demo"
-    say "sudo password needed once (the installer runs as root)"
-    sudo -v || die "sudo is required to run the installer"
+    if { : < /dev/tty; } 2>/dev/null; then
+        say "sudo password needed once (the installer runs as root)"
+        sudo -v || die "sudo is required to run the installer"
+    else
+        # non-interactive: no pty to prompt on - passwordless sudo only
+        sudo -n true 2>/dev/null \
+            || die "no TTY to prompt on - root or passwordless sudo required for this action"
+    fi
     SUDO=(sudo)
 fi
 
